@@ -1,7 +1,25 @@
 from typing import Tuple
 
 import cv2
+from matplotlib import transforms
 import numpy as np
+
+
+def add_right_cax(ax, pad, width):
+    # 在一个ax右边追加与之等高的cax.
+    # pad是cax与ax的间距,width是cax的宽度.
+
+    axpos = ax.get_position()
+    caxpos = transforms.Bbox.from_extents(
+        axpos.x1 + pad,
+        axpos.y0 + 0.017,
+        axpos.x1 + pad + width,
+        axpos.y1 - 0.017
+    )
+    cax = ax.figure.add_axes(caxpos)
+
+    return cax
+
 
 
 def get_road_mask(semantic_path, semantic_value: Tuple):
@@ -16,6 +34,7 @@ def get_road_mask(semantic_path, semantic_value: Tuple):
     mask = mask / 255
     mask.astype(int)
     return mask
+
 
 def read_vkitti_png_flow(flow_fn):
     """Convert from .png to (h, w, 2) (flow_x, flow_y) float32 array"""
@@ -32,6 +51,7 @@ def read_vkitti_png_flow(flow_fn):
     out_flow[..., 1] *= h - 1
     out_flow[invalid] = 0  # or another value (e.g., np.nan)
     return out_flow, 1 - invalid
+
 
 # def remove_invalid_pixels(mask, )
 
@@ -54,5 +74,3 @@ def get_extrinsics(ex_path: str, frame_id: int):
                     [r31, r32, r33]])
     pos = np.array([t1, t2, t3])
     return rot, pos
-
-

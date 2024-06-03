@@ -140,8 +140,8 @@ def flow_to_image(flow):
 if __name__ == '__main__':
 
     pic_num = 735
-    path = "F:\\dataset\\KITTI\\2011_09_26_drive_0101_sync\\"
-    optical_flow_path = path + f"flow\\0000000{pic_num}.png"
+    path = "F:/dataset/KITTI/2011_09_26_drive_0101_sync/"
+    optical_flow_path = path / f"flow/0000000{pic_num}.png"
     optical_flow_img = cv2.imread(optical_flow_path, -1)
     valid = optical_flow_img[:, :, 0]
     fu = optical_flow_img[:, :, 2].astype(np.float32)

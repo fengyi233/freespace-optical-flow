@@ -1,30 +1,29 @@
 import os
 from math import sin, cos, tan, pi
+from pathlib import Path
 
 import cv2
 import matplotlib
-import matplotlib.transforms as mtransforms
 import numpy as np
 from PIL import Image
 from matplotlib import pyplot as plt
 from scipy.optimize import curve_fit
-from scipy.spatial.transform import Rotation as R
 
-from pathlib import Path
-
-from utils import flow_to_image
+from utils import flow_to_image, add_right_cax
 
 # ====================== initialization ===============================
 theta_real = -10  # 0 / 5 / -5 / 10 / -10
 pic_num = 70  # 140 for straight-going; 70 for turning
 
-path = Path(f"./data/CARLA/t10_s0_r{theta_real}")
+path = Path(f"../data/CARLA/t10_s0_r{theta_real}")
 
 original_img_path = path / f"rgb/00000{pic_num:0>3d}.png"
 optical_flow_path = path / f"optical_flow/00000{pic_num:0>3d}.tif"
 optical_flow_path_png = path / f"optical_flow/00000{pic_num:0>3d}.png"
 semantic_path = path / f"semantic/00000{pic_num:0>3d}.png"
-fig_save_path = Path('outputs') / f"figs/00000{pic_num:0>3d}"
+fig_save_path = Path('../outputs') / f"figs/CARLA/00000{pic_num:0>3d}"
+if not os.path.exists(fig_save_path):
+    os.makedirs(fig_save_path)
 
 v_max = image_h = 480
 u_max = image_w = 640
@@ -43,21 +42,6 @@ colors = {
     'road': np.array([128, 64, 128], dtype=np.uint8),
     'lane_line': np.array([50, 234, 157], dtype=np.uint8)
 }
-
-def add_right_cax(ax, pad, width):
-    # 在一个ax右边追加与之等高的cax.
-    # pad是cax与ax的间距,width是cax的宽度.
-
-    axpos = ax.get_position()
-    caxpos = mtransforms.Bbox.from_extents(
-        axpos.x1 + pad,
-        axpos.y0 + 0.017,
-        axpos.x1 + pad + width,
-        axpos.y1 - 0.017
-    )
-    cax = ax.figure.add_axes(caxpos)
-
-    return cax
 
 
 def flow_func(x, vr, theta, delta_f):
@@ -121,8 +105,7 @@ def fu_func(x, vr, theta, delta_f):
 if __name__ == '__main__':
     # ==================== get the mask of freespace =========================================
     semantic_img = cv2.imread(str(semantic_path))
-    # road: (128,64,128)
-    # road line: (157, 234, 50)
+
     mask_road = cv2.inRange(semantic_img, colors['road'], colors['road'])
     mask_roadline = cv2.inRange(semantic_img, colors['lane_line'], colors['lane_line'])
     mask = mask_road | mask_roadline
@@ -144,9 +127,6 @@ if __name__ == '__main__':
 
     fu = fu_origin * mask
     fv = fv_origin * mask
-
-    if not os.path.exists(fig_save_path):
-        os.makedirs(fig_save_path)
 
     # ==================== v-fv map =========================================
     # This figure describes the relationship between vertical coordinates `v` and vertical components of optical flow
@@ -197,7 +177,6 @@ if __name__ == '__main__':
     popt = res[0]
 
     Y = (v1 - popt[1]) ** 2 / (popt[0] - (v1 - popt[1]))
-
     plt.plot(Y, v1, 'r')
     plt.savefig(fig_save_path / "v-fv-curve.png", bbox_inches='tight', pad_inches=0, dpi=500)
 
@@ -302,7 +281,6 @@ if __name__ == '__main__':
     #                     fv figure
     # ==========================================================
     plt.rc('font', family='Times New Roman')
-
     norm = matplotlib.colors.Normalize(vmin=min(fv.min(), fv_est.min()),
                                        vmax=max(fv.max(), fv_est.max()))
 
@@ -314,7 +292,6 @@ if __name__ == '__main__':
 
     cax = add_right_cax(ax, pad=0.01, width=0.02)
     cb = plt.colorbar(h1, cax=cax, ticks=None)
-    # 设置colorbar标签字体等
     cb.ax.tick_params(labelsize=20, direction='in')
     plt.savefig(fig_save_path / "fv_estimated.png", bbox_inches='tight', pad_inches=0, dpi=500)
 
@@ -325,8 +302,7 @@ if __name__ == '__main__':
     cax = add_right_cax(ax, pad=0.01, width=0.02)
     # cbar_ax = fig.add_axes(rect)
     cb = plt.colorbar(h1, cax=cax, ticks=None)
-    # 设置colorbar标签字体等
-    cb.ax.tick_params(labelsize=20, direction='in')  # 设置色标刻度字体大小。
+    cb.ax.tick_params(labelsize=20, direction='in')
     # cb.ax.set_title('pixels', fontsize=10)
 
     plt.savefig(fig_save_path / "fv_truth.png", bbox_inches='tight', pad_inches=0, dpi=500)
@@ -343,12 +319,8 @@ if __name__ == '__main__':
     plt.axis('off')
 
     cax = add_right_cax(ax, pad=0.01, width=0.02)
-    # cbar_ax = fig.add_axes(rect)
     cb = plt.colorbar(h1, cax=cax, ticks=None)
-    # 设置colorbar标签字体等
-    cb.ax.tick_params(labelsize=20, direction='in')  # 设置色标刻度字体大小。
-    # cb.ax.set_title('pixels', fontsize=7)
-    # cb.ax.set_title('pixels',fontsize=5)
+    cb.ax.tick_params(labelsize=20, direction='in')
 
     plt.savefig(fig_save_path / "fu_estimated.png", bbox_inches='tight', pad_inches=0, dpi=500)
 
@@ -358,10 +330,8 @@ if __name__ == '__main__':
     plt.axis('off')
 
     cax = add_right_cax(ax, pad=0.01, width=0.02)
-    # cbar_ax = fig.add_axes(rect)
     cb = plt.colorbar(h1, cax=cax, ticks=None)
-    # 设置colorbar标签字体等
-    cb.ax.tick_params(labelsize=20, direction='in')  # 设置色标刻度字体大小。
+    cb.ax.tick_params(labelsize=20, direction='in')
     # cb.ax.set_title('pixels', fontsize=7)
     plt.savefig(fig_save_path / "fu_truth.png", bbox_inches='tight', pad_inches=0, dpi=500)
 
@@ -381,5 +351,5 @@ if __name__ == '__main__':
     fig = plt.figure("semantic")
     plt.axis('off')
     plt.imshow(semantic_img)
-    plt.savefig(fig_save_path / "semantic.png", bbox_inches='tight', dpi=fig.dpi, pad_inches=0.0)
+    plt.savefig(fig_save_path / "semantic.png", bbox_inches='tight', dpi=500, pad_inches=0.0)
     plt.show()
