@@ -9,21 +9,13 @@ from PIL import Image
 from matplotlib import pyplot as plt
 from scipy.optimize import curve_fit
 
-from utils import flow_to_image, add_right_cax
+from utils import flow_to_image, add_right_cax, parse_args
 
 # ====================== initialization ===============================
-theta_real = -10  # 0 / 5 / -5 / 10 / -10
-pic_num = 70  # 140 for straight-going; 70 for turning
+# theta_real = -10  # 0 / 5 / -5 / 10 / -10
+# pic_num = 70  # 140 for straight-going; 70 for turning
 
-path = Path(f"../data/CARLA/t10_s0_r{theta_real}")
 
-original_img_path = path / f"rgb/00000{pic_num:0>3d}.png"
-optical_flow_path = path / f"optical_flow/00000{pic_num:0>3d}.tif"
-optical_flow_path_png = path / f"optical_flow/00000{pic_num:0>3d}.png"
-semantic_path = path / f"semantic/00000{pic_num:0>3d}.png"
-fig_save_path = Path('../outputs') / f"figs/CARLA/00000{pic_num:0>3d}"
-if not os.path.exists(fig_save_path):
-    os.makedirs(fig_save_path)
 
 v_max = image_h = 480
 u_max = image_w = 640
@@ -33,10 +25,6 @@ f = fx = fy = image_w / 2.0
 h = 2.4  # height of the camera
 l = 2.7  # length of the car
 EPS = 1e-9
-
-# plt initialization
-# plt.rcParams['font.sans-serif'] = 'Times New Roman'
-
 
 colors = {
     'road': np.array([128, 64, 128], dtype=np.uint8),
@@ -103,6 +91,20 @@ def fu_func(x, vr, theta, delta_f):
 
 
 if __name__ == '__main__':
+    args = parse_args()
+    pic_num = args.pic_num
+    theta_real = args.theta_real
+
+    path = Path(f"data/CARLA/t10_s0_r{theta_real}")
+
+    original_img_path = path / f"rgb/00000{pic_num:0>3d}.png"
+    optical_flow_path = path / f"optical_flow/00000{pic_num:0>3d}.tif"
+    optical_flow_path_png = path / f"optical_flow/00000{pic_num:0>3d}.png"
+    semantic_path = path / f"semantic/00000{pic_num:0>3d}.png"
+    fig_save_path = Path('outputs') / f"figs/CARLA/00000{pic_num:0>3d}"
+    if not os.path.exists(fig_save_path):
+        os.makedirs(fig_save_path)
+
     # ==================== get the mask of freespace =========================================
     semantic_img = cv2.imread(str(semantic_path))
 

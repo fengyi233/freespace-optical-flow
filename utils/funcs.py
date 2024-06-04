@@ -1,8 +1,20 @@
+import argparse
 from typing import Tuple
 
 import cv2
 from matplotlib import transforms
 import numpy as np
+
+
+def parse_args():
+    parser = argparse.ArgumentParser()
+    parser.add_argument('--theta_real', type=int, default=-10)  # carla
+    parser.add_argument('--pic_num', type=int, default=70)  # carla, kitti, vkitti2
+    parser.add_argument('--scene', type=int, default=1)     # vkitti2
+    args = parser.parse_args()
+    return args
+
+
 
 
 def add_right_cax(ax, pad, width):

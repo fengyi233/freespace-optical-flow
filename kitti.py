@@ -9,26 +9,19 @@ from PIL import Image
 from matplotlib import pyplot as plt
 from scipy.optimize import curve_fit
 
-from utils import add_right_cax
+from utils import add_right_cax, parse_args
 
 # ====================== initialization ===============================
-pic_num_list = [1, 2, 26, 69, 70, 71, 72, 76, 80, 99, 101, 102, 106, 128, 147, 148, 176, 188, 194, 195, 197]
-
+# pic_num_list = [1, 2, 26, 69, 70, 71, 72, 76, 80, 99, 101, 102, 106, 128, 147, 148, 176, 188, 194, 195, 197]
 # selected_pic = [72,99,148,197]
-pic_num = 72
+# pic_num = 72
 
 u0 = 609.5593
 v0 = 172.8540
 fx = fy = f = 721.5377
 EPS = 1e-9
 
-path = Path("../data/KITTI/")
-img_path = path / f"image_2/000{pic_num:0>3d}_10.png"
-optical_flow_path = path / f"flow_noc/000{pic_num:0>3d}_10.png"
-semantic_path = path / f"semantic/000{pic_num:0>3d}_10.png"
-fig_save_path = Path('../outputs') / f"figs/KITTI/000{pic_num:0>3d}"
-if not os.path.exists(fig_save_path):
-    os.makedirs(fig_save_path)
+
 
 
 def flow_func(x, theta, Xd, Zd, phi, h):
@@ -88,6 +81,17 @@ def fu_func(x, theta, Xd, Zd, phi, h):
 
 
 if __name__ == '__main__':
+    args = parse_args()
+    pic_num = args.pic_num
+
+    path = Path("data/KITTI/")
+    img_path = path / f"image_2/000{pic_num:0>3d}_10.png"
+    optical_flow_path = path / f"flow_noc/000{pic_num:0>3d}_10.png"
+    semantic_path = path / f"semantic/000{pic_num:0>3d}_10.png"
+    fig_save_path = Path('outputs') / f"figs/KITTI/000{pic_num:0>3d}"
+    if not os.path.exists(fig_save_path):
+        os.makedirs(fig_save_path)
+
     # ==================== get the mask of freespace =========================================
     semantic_img = cv2.imread(str(semantic_path))
 
